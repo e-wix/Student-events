@@ -3,7 +3,7 @@ import shelve
 import os
 
 app = Flask(__name__)
-DB_NAME = "events.db"
+DB_NAME = "events.json"
 
 @app.route('/')
 def home():
@@ -55,7 +55,7 @@ def vote(event_id):
     return redirect("/")
 from flask import send_file
 
-@app.route("/download-db")
+@app.route("/download-json")
 def download_db():
     return send_file(DB_NAME, as_attachment=True)
 
