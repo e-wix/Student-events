@@ -1,14 +1,18 @@
-from flask import Flask, render_template, request, redirect, jsonify
-import shelve
+from flask import Flask, render_template
+import os
 
 app = Flask(__name__)
 DB_NAME = "events.db"
-
 @app.route('/')
-def index():
+def home():
     with shelve.open(DB_NAME) as db:
         events = dict(db)
     return render_template('index.html', events=events)
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 10000)) 
+    app.run(host='0.0.0.0', port=port)
 
 @app.route("/events")
 def events():
