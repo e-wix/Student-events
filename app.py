@@ -1,19 +1,15 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, jsonify
 import shelve
 import os
 
 app = Flask(__name__)
 DB_NAME = "events.db"
+
 @app.route('/')
 def home():
     with shelve.open(DB_NAME) as db:
         events = dict(db)
     return render_template('index.html', events=events)
-
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 10000)) 
-    app.run(host='0.0.0.0', port=port)
 
 @app.route("/events")
 def events():
@@ -37,7 +33,12 @@ def add_event():
 
     with shelve.open(DB_NAME, writeback=True) as db:
         event_id = str(len(db) + 1)
-        db[event_id] = {"title": title, "description": description, "date": date, "votes": []}
+        db[event_id] = {
+            "title": title,
+            "description": description,
+            "date": date,
+            "votes": []
+        }
 
     return redirect("/")
 
@@ -53,5 +54,8 @@ def vote(event_id):
 
     return redirect("/")
 
-if __name__ == "__main__":
-    app.run(debug=True)
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
+
