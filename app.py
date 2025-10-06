@@ -53,7 +53,11 @@ def vote(event_id):
         db[event_id] = event
 
     return redirect("/")
+from flask import send_file
 
+@app.route("/download-db")
+def download_db():
+    return send_file(DB_NAME, as_attachment=True)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
