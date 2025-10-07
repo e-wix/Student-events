@@ -1,66 +1,65 @@
-from flask import Flask, render_template, request, redirect, jsonify
-import shelve
-import json
-import os
+import json, os
+from flask import Flask, render_template, request, redirect, jsonify, send_file
 
 app = Flask(__name__)
 DB_NAME = "events.json"
 
-@app.route('/')
+def load_events():
+    if not os.path.exists(DB_NAME):
+        return {}
+    with open(DB_NAME) as f:
+        return json.load(f)
+
+def save_events(events):
+    with open(DB_NAME, "w") as f:
+        json.dump(events, f, indent=4)
+
+@app.route("/")
 def home():
-    with shelve.open(DB_NAME) as db:
-        events = dict(db)
-    return render_template('index.html', events=events)
+    events = load_events()
+    return render_template("index.html", events=events)
 
 @app.route("/events")
 def events():
-    with shelve.open(DB_NAME) as db:
-        events_list = []
-        for event_id, event in db.items():
-            events_list.append({
-                "id": event_id,
-                "title": event["title"],
-                "start": event["date"],
-                "description": event["description"],
-                "votes": len(event["votes"])
-            })
+    events = load_events()
+    events_list = [
+        {"id": k,
+         "title": v["title"],
+         "start": v["date"],
+         "description": v["description"],
+         "votes": len(v["votes"])}
+        for k, v in events.items()
+    ]
     return jsonify(events_list)
 
 @app.route("/add_event", methods=["POST"])
 def add_event():
-    title = request.form["title"]
-    description = request.form["description"]
-    date = request.form["date"]
-
-    with shelve.open(DB_NAME, writeback=True) as db:
-        event_id = str(len(db) + 1)
-        db[event_id] = {
-            "title": title,
-            "description": description,
-            "date": date,
-            "votes": []
-        }
-
+    events = load_events()
+    event_id = str(len(events) + 1)
+    events[event_id] = {
+        "title": request.form["title"],
+        "description": request.form["description"],
+        "date": request.form["date"],
+        "votes": []
+    }
+    save_events(events)
     return redirect("/")
 
 @app.route("/vote/<event_id>", methods=["POST"])
 def vote(event_id):
+    events = load_events()
     email = request.form["email"]
-
-    with shelve.open(DB_NAME, writeback=True) as db:
-        event = db[event_id]
-        if email not in event["votes"]:
-            event["votes"].append(email)
-        db[event_id] = event
-
+    if email not in events[event_id]["votes"]:
+        events[event_id]["votes"].append(email)
+    save_events(events)
     return redirect("/")
-from flask import send_file
 
 @app.route("/download-json")
 def download_db():
     return send_file(DB_NAME, as_attachment=True)
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 10000))
-    app.run(host='0.0.0.0', port=port)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
 
