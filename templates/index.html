@@ -23,7 +23,7 @@
             justify-content: center;
             align-items: flex-start;
             gap: 40px;
-            padding: 40px;
+            padding: 80px 40px 40px 40px; 
             flex-wrap: wrap;
         }
         .container, .calendar-container {
@@ -67,7 +67,6 @@
         form { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         textarea { resize: vertical; min-height: 60px; }
 
-        /* FullCalendar integration */
         #calendar {
             background: #fff;
             border-radius: 8px;
@@ -90,14 +89,38 @@
         }
         .fc-button:hover { background: #2575fc !important; }
 
-        footer {
+        footer, .header-text {
             text-align: center;
             color: #dda6a6ff;
             margin-top: 50px;
         }
+
+        .fixed-header {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            color: #dda6a6ff;
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .light-title {
+            color: #cfaaff;
+        }
     </style>
 </head>
 <body>
+
+    <div class="fixed-header">
+        Thames British School
+    </div>
+
     <div class="main-content">
         <div class="container">
             <h1>Add New Event</h1>
@@ -115,7 +138,8 @@
         </div>
     </div>
 
-    <h1>Upcoming Events</h1>
+    
+    <h1 class="light-title">Upcoming Events</h1>
     <ul>
         {% if events and events|length > 0 %}
             {% for id, event in events.items() %}
@@ -133,7 +157,7 @@
     </ul>
 
     <footer>
-        &copy; 2025 Student Events Voting App
+        &copy; 2025 Student Events Voting App — Emma Wix Montes
     </footer>
 
     <script>
@@ -141,7 +165,7 @@
         var calendarEl = document.getElementById("calendar");
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: "dayGridMonth",
-            events: "/events",  // Flask route returning JSON
+            events: "/events",  
             eventClick: function(info) {
                 alert(
                     "Title: " + info.event.title +
@@ -156,3 +180,4 @@
     </script>
 </body>
 </html>
+
