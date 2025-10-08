@@ -17,11 +17,11 @@
             margin: 0;
             padding: 0;
         }
-        h1, h2, {
+        h1, h2 {
             text-align: center;
             color: #6a11cb;
         }
-        p, {
+        p {
             text-align: right;
             color: #36026E;
         }
@@ -129,7 +129,6 @@
             opacity: 0.9; 
         }
 
-
         .light-title {
             color: #cfaaff;
         }
@@ -142,6 +141,7 @@
         <span>Thames British School</span>
     </div>
 
+    <!-- Add Event and Calendar Side by Side -->
     <div class="main-content">
         <div class="container">
             <h1>Add New Event</h1>
@@ -153,19 +153,21 @@
             </form>
         </div>
 
-         <div class="main-content">
-        <div class="container">
-            <h1>About the project</h1>
-            <p>Add info here</p>
-        </div>
-
         <div class="calendar-container">
             <h1>Calendar</h1>
             <div id="calendar"></div>
         </div>
     </div>
 
-    
+    <!-- About Section BELOW -->
+    <div class="main-content">
+        <div class="container">
+            <h1>About the project</h1>
+            <p>Add info here</p>
+        </div>
+    </div>
+
+    <!-- Upcoming Events -->
     <h1 class="light-title">Upcoming Events</h1>
     <ul>
         {% if events and events|length > 0 %}
@@ -207,4 +209,3 @@
     </script>
 </body>
 </html>
-
