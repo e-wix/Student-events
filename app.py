@@ -13,10 +13,8 @@ def load_events():
         return json.load(f)
 
 def save_events(events):
-    tmp_file = DB_NAME + ".tmp"
-    with open(tmp_file, "w") as f:
+    with open(DB_NAME, "w") as f:
         json.dump(events, f, indent=4)
-    os.replace(tmp_file, DB_NAME)
 
 # ---------- SQL Setup ----------
 def init_sql_db():
