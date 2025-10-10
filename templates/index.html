@@ -5,7 +5,6 @@
     <title>Student Events Voting & Calendar</title>
     
     <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/International_Baccalaureate_Logo.svg/1200px-International_Baccalaureate_Logo.svg.png">
-
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
@@ -34,13 +33,19 @@
             padding: 80px 40px 40px 40px; 
             flex-wrap: wrap;
         }
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            flex: 1;
+            max-width: 500px;
+        }
         .container, .calendar-container {
             background: #a4d1ff;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 6px 18px rgba(0,0,0,0.2);
         }
-        .container { max-width: 500px; flex: 1; }
         .calendar-container { max-width: 600px; flex: 1; }
 
         ul { list-style: none; padding: 0; }
@@ -141,16 +146,22 @@
         <span>Thames British School</span>
     </div>
 
-    <!-- Add Event and Calendar Side by Side -->
     <div class="main-content">
-        <div class="container">
-            <h1>Add New Event</h1>
-            <form action="/add_event" method="post">
-                <input type="text" name="title" placeholder="Event Title" required>
-                <textarea name="description" placeholder="Event Description"></textarea>
-                <input type="date" name="date" required>
-                <button type="submit">Add Event</button>
-            </form>
+        <div class="column">
+            <div class="container">
+                <h1>Add New Event</h1>
+                <form action="/add_event" method="post">
+                    <input type="text" name="title" placeholder="Event Title" required>
+                    <textarea name="description" placeholder="Event Description"></textarea>
+                    <input type="date" name="date" required>
+                    <button type="submit">Add Event</button>
+                </form>
+            </div>
+
+            <div class="container">
+                <h1>About the project</h1>
+                <p>Add info here</p>
+            </div>
         </div>
 
         <div class="calendar-container">
@@ -159,15 +170,6 @@
         </div>
     </div>
 
-    <!-- About Section BELOW -->
-    <div class="main-content">
-        <div class="container">
-            <h1>About the project</h1>
-            <p>Add info here</p>
-        </div>
-    </div>
-
-    <!-- Upcoming Events -->
     <h1 class="light-title">Upcoming Events</h1>
     <ul>
         {% if events and events|length > 0 %}
