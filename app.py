@@ -1,7 +1,8 @@
 import json, os, sqlite3
-from flask import Flask, render_template, request, redirect, jsonify, send_file
+from flask import Flask, render_template, request, redirect, jsonify, send_file, flash
 
 app = Flask(__name__)
+app.secret_key = "supersecretkey"  # Needed for flashing messages
 DB_NAME = "events.json"
 SQL_DB = "events.db"
 
@@ -64,24 +65,40 @@ def events():
 def add_event():
     events = load_events()
     event_id = str(len(events) + 1)
+    password = request.form.get("password", "")  # NEW: optional password
     events[event_id] = {
         "title": request.form["title"],
         "description": request.form["description"],
         "date": request.form["date"],
-        "votes": []
+        "votes": [],
+        "password": password  # NEW: store password
     }
     save_events(events)
     update_sql(events)  # sync SQL
+    flash("Event added successfully!", "success")
     return redirect("/")
 
 @app.route("/vote/<event_id>", methods=["POST"])
 def vote(event_id):
     events = load_events()
     email = request.form["email"]
+    entered_password = request.form.get("password", "")
+
+    # NEW: password validation
+    stored_password = events[event_id].get("password", "")
+    if stored_password and entered_password != stored_password:
+        flash("Incorrect password for this event.", "error")
+        return redirect("/")
+
+    # normal voting
     if email not in events[event_id]["votes"]:
         events[event_id]["votes"].append(email)
+        flash("Vote recorded!", "success")
+    else:
+        flash("You’ve already voted for this event.", "warning")
+
     save_events(events)
-    update_sql(events)  # sync SQL
+    update_sql(events)
     return redirect("/")
 
 # ---------- Download Routes ----------
