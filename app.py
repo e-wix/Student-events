@@ -63,7 +63,6 @@ def events():
 
 @app.route("/add_event", methods=["POST"])
 def add_event():
-    """Event creator adds a new event (with optional password)."""
     events = load_events()
     event_id = str(len(events) + 1)
     password = request.form.get("password", "").strip()  # password set by creator
@@ -73,7 +72,7 @@ def add_event():
         "description": request.form["description"],
         "date": request.form["date"],
         "votes": [],
-        "password": password  # stored securely in JSON (plaintext for now)
+        "password": password  # stored in JSON
     }
 
     save_events(events)
@@ -83,7 +82,6 @@ def add_event():
 
 @app.route("/vote/<event_id>", methods=["POST"])
 def vote(event_id):
-    """User votes for an event — must enter correct event password if it has one."""
     events = load_events()
     email = request.form["email"].strip()
     entered_password = request.form.get("password", "").strip()
