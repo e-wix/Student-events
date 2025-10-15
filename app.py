@@ -1,5 +1,6 @@
 import json, os, sqlite3
 from flask import Flask, render_template, request, redirect, jsonify, send_file, flash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Needed for flash messages
@@ -66,25 +67,31 @@ def add_event():
     events = load_events()
     event_id = str(len(events) + 1)
     password = request.form.get("password", "").strip()  # password set by creator
+    password_hash = generate_password_hash(password) if password else ""
 
-    events[event_id] = {
-        "title": request.form["title"],
-        "description": request.form["description"],
-        "date": request.form["date"],
-        "votes": [],
-        "password": password  # stored in JSON
-    }
+events[event_id] = {
+    "title": request.form["title"],
+    "description": request.form["description"],
+    "date": request.form["date"],
+    "votes": [],
+    "password": password  # stored in JSON
+}
+
 
     save_events(events)
     update_sql(events)
     flash("Event created successfully!", "success")
     return redirect("/")
 
-@app.route("/vote/<event_id>", methods=["POST"])
-def vote(event_id):
-    events = load_events()
-    email = request.form["email"].strip()
-    entered_password = request.form.get("password", "").strip()
+stored_password_hash = events[event_id].get("password", "")
+
+if stored_password_hash:
+    if not entered_password:
+        flash("This event requires a password to vote.", "error")
+        return redirect("/")
+    if not check_password_hash(stored_password_hash, entered_password):
+        flash("Incorrect event password.", "error")
+        return redirect("/")
 
     # Check if event exists
     if event_id not in events:
