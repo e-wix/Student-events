@@ -34,24 +34,49 @@ def init_sql_db():
     conn.commit()
     conn.close()
 
-# (the rest of your code remains unchanged)
-save_events(events)
-update_sql(events)
-flash("Event created successfully!", "success")
-return redirect("/")
+# ---------- Create Event ----------
+@app.route("/create", methods=["POST"])
+def create_event():
+    events = load_events()
+    event_id = str(len(events) + 1)
+    name = request.form.get("name")
+    description = request.form.get("description")
+    date = request.form.get("date")
+    password = generate_password_hash(request.form.get("password"))
 
-stored_password_hash = events[event_id].get("password", "")
+    events[event_id] = {
+        "name": name,
+        "description": description,
+        "date": date,
+        "password": password  # stored in JSON
+    }
 
-save_events(events)
-update_sql(events)
-flash("Event created successfully!", "success")
-return redirect("/")
+    save_events(events)
+    update_sql(events)
+    flash("Event created successfully!", "success")
+    return redirect("/")
+
+# ---------- Delete Event ----------
+@app.route("/delete/<event_id>", methods=["POST"])
+def delete_event(event_id):
+    events = load_events()
+    stored_password_hash = events[event_id].get("password", "")
+
+    password_input = request.form.get("password")
+    if check_password_hash(stored_password_hash, password_input):
+        del events[event_id]
+        save_events(events)
+        update_sql(events)
+        flash("Event deleted successfully!", "success")
+    else:
+        flash("Incorrect password.", "danger")
+
+    return redirect("/")
 
 # ---------- Download Routes ----------
 @app.route("/download-json")
 def download_json():
     return send_file(DB_NAME, as_attachment=True)
-
 
 @app.route("/download-db")
 def download_db():
