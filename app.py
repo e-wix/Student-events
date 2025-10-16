@@ -20,15 +20,21 @@ def save_events(events):
 
 # ---------- SQL Setup ----------
 def init_sql_db():
-@@ -77,11 +66,10 @@
-    "password": password  # stored in JSON
+    conn = sqlite3.connect(SQL_DB)
+    c = conn.cursor()
+    c.execute(
+        """CREATE TABLE IF NOT EXISTS events (
+            id TEXT PRIMARY KEY,
+            name TEXT,
+            description TEXT,
+            date TEXT,
+            password TEXT
+        )"""
+    )
+    conn.commit()
+    conn.close()
 
-
-
-    save_events(events)
-    update_sql(events)
-    flash("Event created successfully!", "success")
-    return redirect("/")
+# (the rest of your code remains unchanged)
 save_events(events)
 update_sql(events)
 flash("Event created successfully!", "success")
@@ -36,8 +42,10 @@ return redirect("/")
 
 stored_password_hash = events[event_id].get("password", "")
 
-@@ -117,16 +105,14 @@
-    return redirect("/")
+save_events(events)
+update_sql(events)
+flash("Event created successfully!", "success")
+return redirect("/")
 
 # ---------- Download Routes ----------
 @app.route("/download-json")
