@@ -22,7 +22,7 @@ def save_events(events):
 def init_sql_db():
 @@ -77,11 +66,10 @@
     "password": password  # stored in JSON
-}
+
 
 
     save_events(events)
