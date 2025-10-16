@@ -20,78 +20,30 @@ def save_events(events):
 
 # ---------- SQL Setup ----------
 def init_sql_db():
-    conn = sqlite3.connect(SQL_DB)
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS events
-                 (id TEXT PRIMARY KEY, name TEXT, date TEXT, description TEXT, password TEXT)''')
-    conn.commit()
-    conn.close()
+@@ -77,11 +66,10 @@
+    "password": password  # stored in JSON
+}
 
-def update_sql(events):
-    conn = sqlite3.connect(SQL_DB)
-    c = conn.cursor()
-    c.execute("DELETE FROM events")
-    for event_id, event_data in events.items():
-        c.execute("INSERT OR REPLACE INTO events VALUES (?, ?, ?, ?, ?)",
-                  (event_id, event_data["name"], event_data["date"],
-                   event_data["description"], event_data["password"]))
-    conn.commit()
-    conn.close()
-
-# ---------- Routes ----------
-@app.route("/")
-def index():
-    events = load_events()
-    return render_template("index.html", events=events)
-
-@app.route("/create-event", methods=["POST"])
-def create_event():
-    events = load_events()
-
-    event_id = request.form["id"]
-    name = request.form["name"]
-    date = request.form["date"]
-    description = request.form["description"]
-    password = request.form["password"]
-
-    # ✅ Hash the password before saving
-    hashed_password = generate_password_hash(password)
-
-    events[event_id] = {
-        "name": name,
-        "date": date,
-        "description": description,
-        "password": hashed_password  # stored as hash
-    }
 
     save_events(events)
     update_sql(events)
     flash("Event created successfully!", "success")
     return redirect("/")
+save_events(events)
+update_sql(events)
+flash("Event created successfully!", "success")
+return redirect("/")
 
-@app.route("/delete-event", methods=["POST"])
-def delete_event():
-    events = load_events()
+stored_password_hash = events[event_id].get("password", "")
 
-    event_id = request.form["id"]
-    password = request.form["password"]
-
-    if event_id not in events:
-        flash("Event not found.", "danger")
-        return redirect("/")
-
-    stored_password_hash = events[event_id].get("password", "")
-
-    # ✅ Verify hashed password
-    if not check_password_hash(stored_password_hash, password):
-        flash("Incorrect password.", "danger")
-        return redirect("/")
-
-    del events[event_id]
-    save_events(events)
-    update_sql(events)
-    flash("Event deleted successfully!", "success")
+@@ -117,16 +105,14 @@
     return redirect("/")
+
+# ---------- Download Routes ----------
+@app.route("/download-json")
+def download_json():
+    return send_file(DB_NAME, as_attachment=True)
+
 
 @app.route("/download-db")
 def download_db():
