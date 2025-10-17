@@ -22,7 +22,6 @@
         }
         p {
             text-align: justify;
-            text-justify: inter-word;
             color: #36026E;
         }
         
@@ -49,33 +48,73 @@
         }
         .calendar-container { max-width: 600px; flex: 1; }
 
-        ul { list-style: none; padding: 0; }
-        li {
-            background: #a4d1ff;
-            margin: 15px 0;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        /* === NEW STYLES FOR EVENT CARDS === */
+        .events-section {
+            padding: 50px 60px;
         }
-        li b { font-size: 1.2em; color: #240589; }
-        .vote-form { margin-top: 10px; }
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        .event-card {
+            background: #f3f7ff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 18px 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .event-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+        .event-title {
+            font-weight: 700;
+            color: #240589;
+            font-size: 1.1em;
+            margin-bottom: 6px;
+        }
+        .event-date {
+            font-size: 0.9em;
+            color: #4c0082;
+            margin-bottom: 8px;
+        }
+        .event-desc {
+            font-size: 0.9em;
+            color: #3e006e;
+            margin-bottom: 12px;
+        }
+        .event-votes {
+            font-weight: 500;
+            color: #5a09c5;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+        .vote-form {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: #e4eaff;
+            padding: 10px;
+            border-radius: 8px;
+        }
 
         input[type="email"], input[type="text"], input[type="date"], input[type="password"], textarea {
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 6px;
-            margin-right: 10px;
-            font-size: 1em;
+            font-size: 0.9em;
         }
-        input[type="email"] { width: 250px; }
         button {
-            padding: 8px 15px;
+            padding: 7px 12px;
             background: #6a11cb;
             color: #fff;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             transition: 0.3s;
+            font-size: 0.9em;
         }
         button:hover { background: #2575fc; }
         form { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
@@ -136,6 +175,8 @@
 
         .light-title {
             color: #cfaaff;
+            text-align: center;
+            margin-top: 60px;
         }
     </style>
 </head>
@@ -161,8 +202,8 @@
 
             <div class="container">
                 <h1>About the project</h1>
-                <p><em>Finding and organising activities getting people to agree on these is often difficoult. In a poll I ran, about 60% of (16-17 year olds) said their plans often got cancelled because not everyone could join, usually due to problems choosing a date, location, or activity. Only 30% said arguments caused plans to fail, showing that the main issue is organizing, not disagreements.
-To help solve this, I’m creating an online platform that makes planning with friends easier. The platform will let users suggest ideas, vote on activities, and find a date that works for everyone — all in one place. This web app createst allows users to suggest events and activities without adding any extra or external complications. </em></p>
+                <p><em>Finding and organising activities and getting people to agree on these is often difficult. In a poll I ran, about 60% of 16–17-year-olds said their plans often got cancelled because not everyone could join, usually due to problems choosing a date, location, or activity. Only 30% said arguments caused plans to fail, showing that the main issue is organizing, not disagreements.
+                To help solve this, I’m creating an online platform that makes planning with friends easier. The platform lets users suggest ideas, vote on activities, and find a date that works for everyone — all in one place.</em></p>
             </div>
         </div>
 
@@ -172,25 +213,32 @@ To help solve this, I’m creating an online platform that makes planning with f
         </div>
     </div>
 
-    <h1 class="light-title">Upcoming Events</h1>
-    <ul>
-        {% if events and events|length > 0 %}
-            {% for id, event in events.items() %}
-            <li>
-                <b>{{ event["title"] }}</b> ({{ event["date"] }})<br>
-                {{ event["description"] }}<br>
-                Votes: {{ event["votes"]|length }}
-                <form class="vote-form" action="/vote/{{ id }}" method="post">
-                    <input type="email" name="email" placeholder="Enter your email" required>
-                    {% if event["password"] %}
-                        <input type="password" name="password" placeholder="Enter event password" required>
-                    {% endif %}
-                    <button type="submit">Vote</button>
-                </form>
-            </li>
-            {% endfor %}
-        {% endif %}
-    </ul>
+    <!-- === NEW EVENT GRID SECTION === -->
+    <section class="events-section">
+        <h1 class="light-title">Upcoming Events</h1>
+        <div class="events-grid">
+            {% if events and events|length > 0 %}
+                {% for id, event in events.items() %}
+                <div class="event-card">
+                    <div class="event-title">{{ event["title"] }}</div>
+                    <div class="event-date">{{ event["date"] }}</div>
+                    <div class="event-desc">{{ event["description"] }}</div>
+                    <div class="event-votes">Votes: {{ event["votes"]|length }}</div>
+
+                    <form class="vote-form" action="/vote/{{ id }}" method="post">
+                        <input type="email" name="email" placeholder="Enter your email" required>
+                        {% if event["password"] %}
+                            <input type="password" name="password" placeholder="Enter event password" required>
+                        {% endif %}
+                        <button type="submit">Vote</button>
+                    </form>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color:white; text-align:center;">No events yet. Add one above!</p>
+            {% endif %}
+        </div>
+    </section>
 
     <footer>
         &copy; 2025 Student Events Voting App — Emma Wix Montes
