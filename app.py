@@ -1,8 +1,9 @@
 import json, os, sqlite3
+from flask import Flask, render_template, request, redirect, jsonify, send_file
 from flask import Flask, render_template, request, redirect, jsonify, send_file, flash
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"  # Needed for flash messages
+app.secret_key = "supersecretkey"  # Needed for flashing messages
 DB_NAME = "events.json"
 SQL_DB = "events.db"
 
@@ -63,52 +64,43 @@ def events():
 
 @app.route("/add_event", methods=["POST"])
 def add_event():
-    """Event creator adds a new event (with optional password)."""
     events = load_events()
     event_id = str(len(events) + 1)
-    password = request.form.get("password", "").strip()  # password set by creator
-
+    password = request.form.get("password", "")  # NEW: optional password
     events[event_id] = {
         "title": request.form["title"],
         "description": request.form["description"],
         "date": request.form["date"],
+        "votes": []
         "votes": [],
-        "password": password  # stored securely in JSON (plaintext for now)
-        "password": password  # stored in JSON
+        "password": password  # NEW: store password
     }
-
     save_events(events)
-    update_sql(events)
-    flash("Event created successfully!", "success")
+    update_sql(events)  # sync SQL
+    flash("Event added successfully!", "success")
     return redirect("/")
 
 @app.route("/vote/<event_id>", methods=["POST"])
 def vote(event_id):
-    """User votes for an event — must enter correct event password if it has one."""
     events = load_events()
-    email = request.form["email"].strip()
-    entered_password = request.form.get("password", "").strip()
+    email = request.form["email"]
+    entered_password = request.form.get("password", "")
 
-    # Check if event exists
-    if event_id not in events:
-        flash("Event not found.", "error")
-        return redirect("/")
-
+    # NEW: password validation
     stored_password = events[event_id].get("password", "")
-
-    # Verify password if event has one
     if stored_password and entered_password != stored_password:
-        flash("Incorrect event password.", "error")
+        flash("Incorrect password for this event.", "error")
         return redirect("/")
 
-    # Add vote if user hasn't voted yet
+    # normal voting
     if email not in events[event_id]["votes"]:
         events[event_id]["votes"].append(email)
-        flash("Your vote has been recorded!", "success")
+        flash("Vote recorded!", "success")
     else:
-        flash("You have already voted for this event.", "warning")
+        flash("You’ve already voted for this event.", "warning")
 
     save_events(events)
+    update_sql(events)  # sync SQL
     update_sql(events)
     return redirect("/")
 
