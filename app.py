@@ -102,9 +102,7 @@ def vote(event_id):
     return redirect("/")
 
 # ---------- Download Routes ----------
-@app.route("/download-json")
-def download_json():
-    return send_file(DB_NAME, as_attachment=True)
+
 
 @app.route("/download-db")
 def download_db():
