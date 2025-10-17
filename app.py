@@ -1,5 +1,4 @@
 import json, os, sqlite3
-from flask import Flask, render_template, request, redirect, jsonify, send_file
 from flask import Flask, render_template, request, redirect, jsonify, send_file, flash
 
 app = Flask(__name__)
@@ -71,7 +70,6 @@ def add_event():
         "title": request.form["title"],
         "description": request.form["description"],
         "date": request.form["date"],
-        "votes": []
         "votes": [],
         "password": password  # NEW: store password
     }
@@ -101,7 +99,6 @@ def vote(event_id):
 
     save_events(events)
     update_sql(events)  # sync SQL
-    update_sql(events)
     return redirect("/")
 
 # ---------- Download Routes ----------
