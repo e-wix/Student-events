@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Student Events Voting & Calendar</title>
-    
+
     <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/International_Baccalaureate_Logo.svg/1200px-International_Baccalaureate_Logo.svg.png">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
@@ -25,7 +25,7 @@
             text-justify: inter-word;
             color: #36026E;
         }
-        
+
         .main-content {
             display: flex;
             justify-content: center;
@@ -49,64 +49,78 @@
         }
         .calendar-container { max-width: 600px; flex: 1; }
 
-        /* --- Smaller, better formatted event boxes --- */
-        .events-section {
-            padding: 40px 60px;
-        }
-        .events-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-top: 25px;
-        }
-        .event-box {
+        ul { list-style: none; padding: 0; }
+        li {
             background: #a4d1ff;
+            margin: 15px 0;
+            padding: 20px;
             border-radius: 10px;
-            padding: 15px 18px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            font-size: 0.95em;
-            line-height: 1.4;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        /* === NEW STYLES FOR EVENT CARDS === */
+        .events-section {
+            padding: 50px 60px;
+        }
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        .event-card {
+            background: #f3f7ff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 18px 20px;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .event-box:hover {
+        .event-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
         }
         .event-title {
-            font-weight: bold;
-            font-size: 1.05em;
+            font-weight: 700;
             color: #240589;
-            margin-bottom: 4px;
+            font-size: 1.1em;
+            margin-bottom: 6px;
         }
         .event-date {
             font-size: 0.9em;
-            color: #36026E;
-            margin-bottom: 6px;
+            color: #4c0082;
+            margin-bottom: 8px;
         }
         .event-desc {
             font-size: 0.9em;
-            margin-bottom: 8px;
+            color: #3e006e;
+            margin-bottom: 12px;
         }
         .event-votes {
             font-weight: 500;
-            color: #240589;
-            margin-bottom: 6px;
+            color: #5a09c5;
             font-size: 0.9em;
+            margin-bottom: 8px;
         }
         .vote-form {
             display: flex;
             flex-direction: column;
             gap: 6px;
-            margin-top: 8px;
+            background: #e4eaff;
+            padding: 10px;
+            border-radius: 8px;
         }
+        li b { font-size: 1.2em; color: #240589; }
+        .vote-form { margin-top: 10px; }
 
         input[type="email"], input[type="text"], input[type="date"], input[type="password"], textarea {
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 6px;
+            margin-right: 10px;
+            font-size: 1em;
             font-size: 0.9em;
         }
+        input[type="email"] { width: 250px; }
         button {
+            padding: 8px 15px;
             padding: 7px 12px;
             background: #6a11cb;
             color: #fff;
@@ -117,6 +131,7 @@
             font-size: 0.9em;
         }
         button:hover { background: #2575fc; }
+        form { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         textarea { resize: vertical; min-height: 60px; }
 
         #calendar {
@@ -201,6 +216,8 @@
 
             <div class="container">
                 <h1>About the project</h1>
+                <p><em>Finding and organising activities getting people to agree on these is often difficoult. In a poll I ran, about 60% of (16-17 year olds) said their plans often got cancelled because not everyone could join, usually due to problems choosing a date, location, or activity. Only 30% said arguments caused plans to fail, showing that the main issue is organizing, not disagreements.
+To help solve this, I’m creating an online platform that makes planning with friends easier. The platform will let users suggest ideas, vote on activities, and find a date that works for everyone — all in one place. This web app createst allows users to suggest events and activities without adding any extra or external complications. </em></p>
                 <p><em>Finding and organising activities and getting people to agree on these is often difficult. In a poll I ran, about 60% of 16–17-year-olds said their plans often got cancelled because not everyone could join, usually due to problems choosing a date, location, or activity. Only 30% said arguments caused plans to fail, showing that the main issue is organizing, not disagreements.
                 To help solve this, I’m creating an online platform that makes planning with friends easier. The platform lets users suggest ideas, vote on activities, and find a date that works for everyone — all in one place.</em></p>
             </div>
@@ -212,13 +229,32 @@
         </div>
     </div>
 
-    <!-- Smaller, neater event boxes -->
+    <h1 class="light-title">Upcoming Events</h1>
+    <ul>
+        {% if events and events|length > 0 %}
+            {% for id, event in events.items() %}
+            <li>
+                <b>{{ event["title"] }}</b> ({{ event["date"] }})<br>
+                {{ event["description"] }}<br>
+                Votes: {{ event["votes"]|length }}
+                <form class="vote-form" action="/vote/{{ id }}" method="post">
+                    <input type="email" name="email" placeholder="Enter your email" required>
+                    {% if event["password"] %}
+                        <input type="password" name="password" placeholder="Enter event password" required>
+                    {% endif %}
+                    <button type="submit">Vote</button>
+                </form>
+            </li>
+            {% endfor %}
+        {% endif %}
+    </ul>
+    <!-- === NEW EVENT GRID SECTION === -->
     <section class="events-section">
         <h1 class="light-title">Upcoming Events</h1>
-        <div class="events-list">
+        <div class="events-grid">
             {% if events and events|length > 0 %}
                 {% for id, event in events.items() %}
-                <div class="event-box">
+                <div class="event-card">
                     <div class="event-title">{{ event["title"] }}</div>
                     <div class="event-date">{{ event["date"] }}</div>
                     <div class="event-desc">{{ event["description"] }}</div>
