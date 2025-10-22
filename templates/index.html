@@ -30,11 +30,12 @@
         .main-content {
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: stretch; /* Makes both columns equal in height */
             gap: 40px;
             padding: 80px 40px 40px 40px; 
             flex-wrap: wrap;
         }
+
         .column {
             display: flex;
             flex-direction: column;
@@ -42,15 +43,30 @@
             flex: 1;
             max-width: 500px;
         }
+
         .container, .calendar-container {
             background: #a4d1ff;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 6px 18px rgba(0,0,0,0.2);
         }
-        .calendar-container { max-width: 600px; flex: 1; }
 
-        /* Updated upcoming events layout */
+        /* Makes both columns visually even */
+        .calendar-container {
+            max-width: 600px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #calendar {
+            flex: 1;
+            background: #fff;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        /* Upcoming events layout */
         ul {
             list-style: none;
             padding: 0;
@@ -67,8 +83,8 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            flex: 1 1 250px; /* min width for each box */
-            max-width: 300px; /* prevents overly wide boxes */
+            flex: 1 1 250px;
+            max-width: 300px;
             box-sizing: border-box;
         }
 
@@ -96,11 +112,6 @@
         form { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         textarea { resize: vertical; min-height: 60px; }
 
-        #calendar {
-            background: #fff;
-            border-radius: 8px;
-            padding: 10px;
-        }
         .fc-toolbar-title { color: #240589; }
         .fc-daygrid-event {
             background-color: #6a11cb !important;
@@ -176,8 +187,8 @@
 
             <div class="container">
                 <h1>About the project</h1>
-                <p><em>Finding and organising activities getting people to agree on these is often difficoult. In a poll I ran, about 60% of (16-17 year olds) said their plans often got cancelled because not everyone could join, usually due to problems choosing a date, location, or activity. Only 30% said arguments caused plans to fail, showing that the main issue is organizing, not disagreements.
-To help solve this, I’m creating an online platform that makes planning with friends easier. The platform will let users suggest ideas, vote on activities, and find a date that works for everyone — all in one place. This web app createst allows users to suggest events and activities without adding any extra or external complications. </em></p>
+                <p><em>Finding and organising activities and getting people to agree on these is often difficult. In a poll I ran, about 60% of (16-17 year olds) said their plans often got cancelled because not everyone could join, usually due to problems choosing a date, location, or activity. Only 30% said arguments caused plans to fail, showing that the main issue is organizing, not disagreements.
+                To help solve this, I’m creating an online platform that makes planning with friends easier. The platform will let users suggest ideas, vote on activities, and find a date that works for everyone — all in one place. This web app allows users to suggest events and activities without adding any extra or external complications. </em></p>
             </div>
         </div>
 
