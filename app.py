@@ -1,102 +1,121 @@
-import json, os, sqlite3
+import os, sqlite3
 from flask import Flask, render_template, request, redirect, jsonify, send_file, flash
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"  
-DB_NAME = "events.json"
+app.secret_key = "supersecretkey"
 SQL_DB = "events.db"
-
-def load_events():
-    if not os.path.exists(DB_NAME):
-        return {}
-    with open(DB_NAME) as f:
-        return json.load(f)
-
-def save_events(events):
-    with open(DB_NAME, "w") as f:
-        json.dump(events, f, indent=4)
 
 def init_sql_db():
     conn = sqlite3.connect(SQL_DB)
     c = conn.cursor()
     c.execute("""
     CREATE TABLE IF NOT EXISTS events (
-        id INTEGER PRIMARY KEY,
-        title TEXT,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
         description TEXT,
         date TEXT,
-        votes INTEGER
+        password TEXT,
+        votes INTEGER DEFAULT 0
+    )
+    """)
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS votes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_id INTEGER,
+        email TEXT,
+        UNIQUE(event_id, email),
+        FOREIGN KEY(event_id) REFERENCES events(id) ON DELETE CASCADE
     )
     """)
     conn.commit()
     conn.close()
 
-def update_sql(events):
-    """Sync JSON data into SQLite"""
-    init_sql_db()
+def get_all_events():
     conn = sqlite3.connect(SQL_DB)
+    conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    c.execute("DELETE FROM events") 
-    for k, v in events.items():
-        c.execute("INSERT INTO events VALUES (?, ?, ?, ?, ?)",
-                  (int(k), v["title"], v["description"], v["date"], len(v["votes"])))
-    conn.commit()
+    c.execute("""
+        SELECT e.id, e.title, e.description, e.date, e.votes
+        FROM events e
+    """)
+    events = c.fetchall()
     conn.close()
+    return events
 
 @app.route("/")
 def home():
-    events = load_events()
+    events = get_all_events()
     return render_template("index.html", events=events)
 
 @app.route("/events")
 def events():
-    events = load_events()
+    conn = sqlite3.connect(SQL_DB)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute("""
+        SELECT e.id, e.title, e.description, e.date, e.votes
+        FROM events e
+    """)
     events_list = [
-        {"id": k, "title": v["title"], "start": v["date"],
-         "description": v["description"], "votes": len(v["votes"])}
-        for k, v in events.items()
+        {"id": row["id"], "title": row["title"], "start": row["date"],
+         "description": row["description"], "votes": row["votes"]}
+        for row in c.fetchall()
     ]
+    conn.close()
     return jsonify(events_list)
 
 @app.route("/add_event", methods=["POST"])
 def add_event():
-    events = load_events()
-    event_id = str(len(events) + 1)
-    password = request.form.get("password", "")  
-    events[event_id] = {
-        "title": request.form["title"],
-        "description": request.form["description"],
-        "date": request.form["date"],
-        "votes": [],
-        "password": password  
-    }
-    save_events(events)
-    update_sql(events) 
+    title = request.form["title"]
+    description = request.form["description"]
+    date = request.form["date"]
+    password = request.form.get("password", "")
+
+    conn = sqlite3.connect(SQL_DB)
+    c = conn.cursor()
+    c.execute("""
+        INSERT INTO events (title, description, date, password, votes)
+        VALUES (?, ?, ?, ?, 0)
+    """, (title, description, date, password))
+    conn.commit()
+    conn.close()
+
     flash("Event added successfully!", "success")
     return redirect("/")
 
-@app.route("/vote/<event_id>", methods=["POST"])
+@app.route("/vote/<int:event_id>", methods=["POST"])
 def vote(event_id):
-    events = load_events()
     email = request.form["email"]
     entered_password = request.form.get("password", "")
 
-    stored_password = events[event_id].get("password", "")
+    conn = sqlite3.connect(SQL_DB)
+    c = conn.cursor()
+
+    # Verify event and password
+    c.execute("SELECT password FROM events WHERE id = ?", (event_id,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        flash("Event not found.", "error")
+        return redirect("/")
+
+    stored_password = row[0] or ""
     if stored_password and entered_password != stored_password:
+        conn.close()
         flash("Incorrect password for this event.", "error")
         return redirect("/")
 
-    if email not in events[event_id]["votes"]:
-        events[event_id]["votes"].append(email)
+    # Record vote if not already voted
+    try:
+        c.execute("INSERT INTO votes (event_id, email) VALUES (?, ?)", (event_id, email))
+        c.execute("UPDATE events SET votes = votes + 1 WHERE id = ?", (event_id,))
+        conn.commit()
         flash("Vote recorded!", "success")
-    else:
+    except sqlite3.IntegrityError:
         flash("You’ve already voted for this event.", "warning")
 
-    save_events(events)
-    update_sql(events) 
+    conn.close()
     return redirect("/")
-
-
 
 @app.route("/download-db")
 def download_db():
