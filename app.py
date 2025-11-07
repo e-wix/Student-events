@@ -66,21 +66,29 @@ def events():
 
 @app.route("/add_event", methods=["POST"])
 def add_event():
-    title = request.form["title"]
-    description = request.form["description"]
-    date = request.form["date"]
-    password = request.form.get("password", "")
+    title = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+    date = request.form.get("date", "").strip()
+    password = request.form.get("password", "").strip()
+
+    if not title or not date:
+        flash("Title and date are required.", "error")
+        return redirect("/")
 
     conn = sqlite3.connect(SQL_DB)
     c = conn.cursor()
-    c.execute("""
-        INSERT INTO events (title, description, date, password, votes)
-        VALUES (?, ?, ?, ?, 0)
-    """, (title, description, date, password))
-    conn.commit()
-    conn.close()
+    try:
+        c.execute("""
+            INSERT INTO events (title, description, date, password, votes)
+            VALUES (?, ?, ?, ?, 0)
+        """, (title, description, date, password))
+        conn.commit()
+        flash("Event added successfully!", "success")
+    except Exception as e:
+        flash(f"Error adding event: {e}", "error")
+    finally:
+        conn.close()
 
-    flash("Event added successfully!", "success")
     return redirect("/")
 
 @app.route("/vote/<int:event_id>", methods=["POST"])
